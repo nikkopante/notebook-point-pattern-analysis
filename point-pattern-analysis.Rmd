@@ -74,9 +74,49 @@ plot(Q2)
 Ang Kernel estimation ay parang moving window Quadrat method. Gumagamit ito ng kernel at edge correction. Ang kernel ay ang moving window at posibleng may window kung saan kasali ang exterior ng study region. Ito ang tinatawag na edge correction.
 
 Ang tau ay smoothing parameter.Ginagamit ito sa density mapping para ma visualize yung intensity. Imbes na moving window, ang kernel ay bilog at may radius, at kikuha lahat ng events sa loob.
+
+Kapag malaki ang tau mas smooth, pero pag maliit may spikes on may improve yung intensity.
+
+The contribution of an event can extend in multiple kernels unlike the contribution of event in quadrat in which is only in 1 quadrat.
+
+**Adaptive Kernel Estimation** is one way to correct edge defects. Pwede iba iba ang tau dito kesa sa constant tau.
 ```{r}
 plot(density(x,5),axes=FALSE)
 plot(density(x,10),axes=FALSE)
 plot(density(x,15),axes=FALSE)
+```
+
+### Nearest neighbor distances
+Ito ay ginagamit upang mag investigate 2nd oder properties - kung ang pattern ba ay CSR, clustering or may regularity. Ang mga tanong ay, kung ang distribution ng distances. Kung may maraming nearest neighbor na maliit ang distances, pwede masabi na may clustering at kung malalaki naman ang distances ay maaring masabi na may regularity.
+
+* event - event, distance between a random event to its nearest event, it can be a tall tree near a tall tree, both are events, this is actual data
+* point - event, distance between a selected point to an event, a point could be empty, given a person location, is there a tall tree? this is representation of randomness,
+
+Given ng dataset, ang W ay nearest neighbor of each event. This is the statistical measure, and will get a collection of metrics.
+$$G_{hat}(w)=\frac{w_{no. events} \leq w_{nominated}}{n}$$
+Ang G function ay gamit sa event-event (w), at F function ay sa point-event (x)
+
+* Ang early sharpening could indicate clustering since marami na may close Ghat sa lower values ng w(distance). Dominant sa smaller w values.
+* Ang late sharpening naman indicated repulsion kasi sa higher values of w(distance) na nagkaroon ng maraming distribution/frequency. Dominant sa high w values.
+
+Dahil sa mga graph, ang CSR ay nag eexhibit ng stair-like juggedness. Or in general dapat sloping upwards.
+```{r}
+Fc <- Fest(cells) 
+Gc <- Gest(cells) 
+Kc <- Kest(cells) 
+Lc <- Lest(cells) 
+
+plot(Fc,rs~r,main="Border-corrected Estimate of F")
+plot(Fc,theo~r,main="Poisson Estimate of F")
+plot(Fc)
+plot(Gc,rs~r,main="Border-corrected Estimate of G")
+plot(Gc,theo~r,main="Poisson Estimate of G")
+plot(Gc)
+plot(Kc,border~r,main="Border-corrected Estimate of K")
+plot(Kc,theo~r,main="Poisson Estimate of K")
+plot(Kc)
+plot(Lc,border~r,main="Border-corrected Estimate of L")
+plot(Lc,theo~r,main="Poisson Estimate of L")
+plot(Lc)
 ```
 
