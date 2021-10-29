@@ -53,6 +53,7 @@ Quadrat methods, summarize number of events in each quadrat in region R.
 To get intesity, divide the quadrat result in the quadrat area.
 
 Disadvantages:
+
 * Loses spatial detail. Just count the number of events in each quadrat but does not determine if the scatter of the events. Sa modelling dapat ma describe pa rin natin ang events in terms of nearness or scatter.
 * Converts data to area value.
 * Making quadrats smaller generates *higher variation* and to some extremes some quadrats will have no data or 0.
@@ -100,6 +101,8 @@ Ang G function ay gamit sa event-event (w), at F function ay sa point-event (x)
 * Ang late sharpening naman indicated repulsion kasi sa higher values of w(distance) na nagkaroon ng maraming distribution/frequency. Dominant sa high w values.
 
 Dahil sa mga graph, ang CSR ay nag eexhibit ng stair-like juggedness. Or in general dapat sloping upwards.
+
+EDA is exploratory data analysis.
 ```{r}
 Fc <- Fest(cells) 
 Gc <- Gest(cells) 
@@ -118,5 +121,261 @@ plot(Kc)
 plot(Lc,border~r,main="Border-corrected Estimate of L")
 plot(Lc,theo~r,main="Poisson Estimate of L")
 plot(Lc)
+```
+
+What if nearest events are outside study region? and are clustered on one corner? This introduce a correction. Ang edge correction ay nag dedefine ng exterior bound. Yung mga nasa labas ay hindi hahanapan ng nearest neighbor pero yung events sa loob neto makaka contribute sa analysis ng study region.
+
+### K-function
+
+* Ang limitation ng nearest neighbors considers only shortest scales.
+* Given a location, ang intensity at relationship with other events are regardless of direction.
+* Isotrophy, direction does not matter.
+* It compares the expected events to real events.
+
+
+## Modeling Spatial Point Patterns
+
+### Objectives
+* To test a baseline hypothesis
+* To construct models to explain observed patterns
+* The standard model against which a spatial point pattern is compared is **Complete Spatial Randomness**
+
+### Complete Spatial Randomness (CSR)
+Reasons for beginning an analysis with a test for CSR
+
+* Rejection of CSR is prerequisity for attempt to model an observed pattern.
+* Test can assist to explore a datase and assist in the formulation of alternatives to CSR.
+* CSR operates as dividing hypothesis between regular and clustered patterns.
+
+The hypothesis asserts that:
+
+1. The number of events in the study region follows a Poisson distribution. This implies constant intensity, no 1st order effects.
+2. Given *n* events in *A*, the events are an independent ramdom sample from a uniform distribution on A. This implis no spatial interaction.
+
+Remarks:
+1. A pattern for which CSR is not rejected merits further formal statistical analysis.
+
+
+## Test for CSR
+### Simple Quadrat Tests for CSR
+
+$$X^2=\frac{(m-1)S^2}{\bar X}$$
+* S^2 = sample variance, Xbar = sample mean
+* When statistics is large = clustering, small = regularity.
+* Sa R, p-values na ang ipina pakita, X^2 is the p-value
+
+$$ICS=\frac{S^2}{\bar X}-1$$
+* ICS < 0, suggestion of regularity,
+* ICS > 0, clustering
+* ICS = 0, CSR
+* Disadvatge: unequal quadrat size affect analysis
+
+```{r}
+data("swedishpines")
+M <- quadrat.test(swedishpines,nx=3,ny=4)
+M
+plot(M) 
+plot(swedishpines)
+plot(M, add=T, cex=1)
+```
+
+
+
+### Nearest Neighbor Tests for CSR
+```{r}
+  ## without edge correction ##
+clarkevans.test(swedishpines) 
+
+## with guard area (edge correction) ##
+clip1<-owin(c(20,50),c(20,50))
+clarkevans.test(swedishpines,correction="guard",clipregion=clip1) 
+clip2<-owin(c(20,80),c(20,80))
+clarkevans.test(swedishpines,correction="guard",clipregion=clip2) 
+```
+### K-function Tests for CSR
+
+
+
+
+## Analysis of Multiple Types of Events
+* A multivariate spatial point process where event have classification types.
+* The univariate are referred as components of multivariate process.
+
+Analysis Objectives
+
+* Detection of relationship in the pattern of one type from another.
+* Identify indepence of types of events as opposed to attraction or repulsion.
+
+* One event may attract or repel another event. CSR cannot be connected with multivariate, but for individual process.
+* Hypothesizes a positive or negative dependence among the event types.
+* Independence does not imply that any of the component need to be CSR.
+
+## How to analyze multivariate data
+
+### Quadrat Count Analysis
+This works by using cross tabulations. Kada quarant ay may count ng present at absent ng types. Compare to 3.84, kung malaki ay wala silang reason to be independent.
+```{r}
+data("lansing")
+plot(lansing,main="Lansing Woods")
+plot(split(lansing))
+plot(density(split(lansing)),ribbon=F)
+plot(Kcross(lansing,"redoak","whiteoak"))
+plot(Kdot(lansing,"hickory"))
+
+data(amacrine)
+plot(amacrine,main="Rabbit Amacrine Cells")
+Env <- envelope(amacrine,Kcross,nsim=99,i="on",j="off")
+plot(Env)
+```
+
+### Quadrat Count Analysis
+* G(h) Given event i, whats the nearest even j, the probability of getting another type of event?
+* F(h) given a point, nearest event of j is less that or equal to h
+* For an independent patter: G(h) = F(h), the nearest distances from events of j to randomly selected event of point must be the same.
+
+### Bivariate or Coss K-Function
+* Under assumed independence, type i events should be random with respect to type j events.
+
+
+
+## Space-Time Interaction
+Given events that are close in time (nangyari), are there events in space closer than would be expected, mas sabog ba earlier? Observe where true events happen as time goes by. Spatiotemporal.
+
+Example: Onset of disease on days.
+
+* The CSTR (Complete Spatiotemporal Randomness) is the absence of structure in time as well in space.
+* Space-time clustering is the alternative to CSTR
+* Space time clustering is said to exist if, among those events that are closer in time, there are events that are closer in space.
+
+
+### Knox test for space-time interaction
+* Quantifies based on critical space and time distances.
+* Uses s and tau, for critical space and time distances respectively
+
+$$X=\sum_{i=1} ^N \sum_{j=1} ^{i-1}s_{ij}t_{ij}$$
+### Mantel test for space-time interaction
+* This avoids problem of determining critical distances, rather get the average space and time distances
+* Mantel is more popular than Knox. It also implies correlation.
+
+```{r}
+Input =("
+Onset Lat Lon
+        72	34.13583	117.9236
+        59	34.17611 	118.3153
+        41	33.82361 	118.1875
+        72	34.19944 	118.5347
+        61	34.06694 	117.7514
+        32	33.92917 	118.2097
+        52	34.01500 	118.0597
+        47	34.06722 	118.2264
+        65	34.08333 	118.1069
+        75	34.38750 	118.5347
+        ")
+
+MantelData = read.table(textConnection(Input),header=TRUE)
+space.dists <- dist(cbind(MantelData$Lon, MantelData$Lat))
+time.dists <- dist(MantelData$Onset)
+as.matrix(space.dists)
+as.matrix(time.dists)
+
+install.packages("ade4") 
+library(ade4)
+mantel.rtest(space.dists, time.dists, nrepet = 9999)
+```
+### K-function for Space-time interaction
+* If there is space time interaction, D(h,t) will be large
+
+
+## Clustering around a Point Source
+
+
+### Neyman-Scott process
+```{r}
+library(spatstat)
+
+data("redwood")
+x <- redwood
+plot(x, main = "Strauss-Ripley Redwood Saplings Dot Map")
+summary(x)
+
+qa <- quadratcount(x, 25,25)
+plot(intensity(qa, image = TRUE, main = "25x25 Quadrat Map of Redwood Saplings"))
+
+
+#Viasualization of Intensity using Kernel Estimation
+
+plot(density(x, 0.05), axes = TRUE, main = "Bandwith = 0.05")
+plot(x, add = TRUE)
+contour(density(x, 0.05), axes = FALSE, add = TRUE)
+
+plot(density(x, 0.10), axes = TRUE, main = "Bandwidth = 0.10")
+plot(x, add = TRUE)
+contour(density(x, 0.10), axes = FALSE, add = TRUE)
+
+#Test for CSR
+#Quadrat Test
+
+QT <- quadrat.test(x,3) #two-sided test on a 3x3 grid
+QT
+plot(QT, main = "Quadrat Test on a 3X3 grid")
+plot(x, add = TRUE)
+quadrat.test(x, 3, alternative = "clustered") #one-sided test for clustering
+
+plot(intensity(quadratcount(x,3), image = TRUE), main = "3x3 Quadrat Map Saplings")
+
+#Clark-Evans Test
+
+clarkevans.test(x) #no edge correction and two-sided test
+clarkevans.test(x, alternative = "clustered")
+#no edge correction and one-sided test for clustering
+
+clip<- owin(c(0.2, 0.8),c(-0.8,-0.2)) #defines the "desired interior" for edge correction
+clarkevans.test(x, correction = "guard", clipregion = clip)
+#with edge correction and two-sided test
+
+clarkevans.test(x, correction = "guard", clipregion = clip, alternative = "clustered")
+#with edge correction and one-sided test for clustering
+
+#Nearest-Neighbor Distance and Simulation Envelopes
+Fc <- Fest(x)
+Gc <- Gest(x)
+Lc <- Lest(x)
+Kc <- Kest(x)
+
+plot(Fc)
+Fenv <- envelope(x, Fest, nrank = 1, nsim = 999)
+plot(Fenv, main = "Simulation Envelope for F")
+
+plot(Gc)
+Genv <- envelope(x, Gest, nrank=1, nsim = 999)
+plot(Genv, main = "Simulation Envelopes for G")
+
+plot(Lc)
+Lenv <- envelope(x, Lest, nsim= 999, rank = 1)
+plot(Lenv, main = "Simulation Envelopes for L")
+
+plot(Kc)
+Kenv <- envelope(x, Kest, nsim = 999, rank =1)
+plot(Kenv, main = "Simulation Envelopes for K")
+
+#Model Fitting under Neyman-Scott Process
+
+model1 <- kppm(x, trend = ~1, clusters = "Thomas", statistic = "K")
+plot(model1)
+summary(model1)
+
+model1Kenv <- envelope(model1, Kest, nsim = 999, rank =1)
+plot(model1Kenv)
+model1Lenv <- envelope(model1, Lest, nsim = 999, rank =1)
+plot(model1Lenv)
+
+#KPPM
+
+kppm(x,
+     trend = ~1,
+     clusters = c("Thomas", "MatClust","Cauchy","VarGamma","LGCP"),
+     method = c("mincon", "clik2", "palm"),
+     statistic = c("K","pcf"),
+     )
 ```
 
