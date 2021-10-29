@@ -1,0 +1,82 @@
+---
+title: "Presentation Slides Notebook"
+output:
+  html_document:
+    df_print: paged
+---
+
+# Point Patterns
+
+## Objectives
+1. Tignan yung events ay mag exhibit ng systematic pattern as oppose to being randomly distributed. Ito ba ay may clustering or regularity sa isang area kesa random or indenpendent scattering.
+2. Tignan yung intensity ng mga point pattern kung nag va vary.
+3. Tignan ang presenya ng spatial dependence among the events. Ito ay kung asan yung event B ay present kung meron event A.
+4. Gumamit ng models para sa mga na observed na patterns.
+
+## Analysis Approach
+1. Patterns in event location are the focus.
+2. Events may have attributes which can be used to distinguish types.
+3. Stochastic aspect is where events are likely to occur.
+4. Does a pattern exhibit clustering or regularity?
+5. Over what spatial scales do patterns exist?
+
+### 1st Order
+* Sa 1st order effects ay interesado lamang tayo sa **means** and **variances**.
+* Sa point pattern walang means kundi **intensity**. Tinitignan nito ang mean number of events per unit area. Ang intensity ay essentially a mean.
+* Ang mathetical formula ng lambda(s) ay complicated. Ang intensity ay tinitignan yung mean number of event given a location and if you keep on making the area smaller you derive to the intensity. 
+* Kung ang mga intensity may maliit lamang na variations, puwede natin masabi na ang point patterns ay **homogeneous**. 
+
+### 2nd Order
+* Ang 2nd order property ay ang number of events in pairs of areas.
+* Ito ay mga spatial dependence kung saan kung may relasyon ang mga points sa isa't isa -- repel or cluster?
+* Mahalaga ito makuha para malaman kung CSR, clustering or regularity ang point patterns dahil may kanya kanyang analysis ang bawat isa.
+* Ito ay function ng dalawang location -- product of the two events i and j divided by the area of i and j
+
+## Visualization Issues
+1. May underlying population distribution from which events arise in a region.
+2. If the population varies we would expect events to cluster in areas of high population. May clustering ba on the basis on the population alone?
+3. Are they more or less clustered than we would expect on the basis of population alone.
+
+## Exploring Point Patterns
+1st order effects
+
+* Quadrat Methods
+* Kernel estimation
+
+2nd order effects
+
+* Nearest neighbors distances
+* K-function
+
+### Quadrat methods
+Quadrat methods, summarize number of events in each quadrat in region R.
+To get intesity, divide the quadrat result in the quadrat area.
+
+Disadvantages:
+* Loses spatial detail. Just count the number of events in each quadrat but does not determine if the scatter of the events. Sa modelling dapat ma describe pa rin natin ang events in terms of nearness or scatter.
+* Converts data to area value.
+* Making quadrats smaller generates *higher variation* and to some extremes some quadrats will have no data or 0.
+
+Advantages:
+
+```{r}
+library(spatstat)
+data(swedishpines)
+x<-swedishpines
+Q <- quadratcount(x, nx=4,ny=4)
+plot(Q)
+plot(round(Q/600,4))
+Q2 <- quadratcount(x, nx=8,ny=8)
+plot(Q2)
+```
+
+### Kernel Estimation
+Ang Kernel estimation ay parang moving window Quadrat method. Gumagamit ito ng kernel at edge correction. Ang kernel ay ang moving window at posibleng may window kung saan kasali ang exterior ng study region. Ito ang tinatawag na edge correction.
+
+Ang tau ay smoothing parameter.Ginagamit ito sa density mapping para ma visualize yung intensity. Imbes na moving window, ang kernel ay bilog at may radius, at kikuha lahat ng events sa loob.
+```{r}
+plot(density(x,5),axes=FALSE)
+plot(density(x,10),axes=FALSE)
+plot(density(x,15),axes=FALSE)
+```
+
